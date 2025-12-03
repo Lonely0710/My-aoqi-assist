@@ -1,0 +1,19 @@
+{
+  "productName": "My奥奇传说",
+  "version": "1.0.6",
+  "author": "my",
+  "description": "My奥奇传说-For MacOS",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^11.5.0",
+    "electron-reload": "^2.0.0-alpha.1"
+  },
+  "dependencies": {
+    "electron-packager": "^17.1.2",
+    "express": "^4.21.0",
+    "xml2js": "^0.6.2"
+  }
+}

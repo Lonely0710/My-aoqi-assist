@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>控制面板</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+
+<body>
+
+    <!-- Sidebar Component -->
+    <cp-sidebar id="sidebar"></cp-sidebar>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay"
+        class="fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-500">
+        <div class="flex flex-col items-center">
+            <i class="ph-bold ph-spinner animate-spin text-3xl text-sky-500 mb-2"></i>
+            <span class="text-xs font-bold text-slate-400">加载中...</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col bg-slate-50 h-full overflow-hidden">
+        <!-- Header -->
+        <header
+            class="h-14 flex items-center justify-between px-6 border-b border-slate-200 bg-white drag-region shrink-0">
+            <h2 class="text-sm font-bold text-slate-700 flex items-center" id="header-title">
+                <i class="ph-fill ph-user-circle text-sky-500 mr-2 text-lg" id="header-icon"></i>
+                <span id="header-text">角色信息</span>
+            </h2>
+            <div class="flex items-center space-x-1 no-drag">
+                <button id="btn-minimize"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition">
+                    <i class="ph ph-minus"></i>
+                </button>
+                <button id="btn-close"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="flex-1 overflow-y-auto relative custom-scrollbar">
+            <cp-role-info id="view-role"></cp-role-info>
+            <cp-notices id="view-notices" class="hidden"></cp-notices>
+            <cp-daily id="view-daily" class="hidden"></cp-daily>
+            <cp-farming id="view-farming" class="hidden"></cp-farming>
+            <cp-story id="view-story" class="hidden"></cp-story>
+            <cp-weekly id="view-weekly" class="hidden"></cp-weekly>
+            <cp-settings id="view-settings" class="hidden"></cp-settings>
+
+
+            <!-- WPE Placeholder -->
+            <div id="view-wpe" class="hidden p-6 fade-in flex items-center justify-center h-full">
+                <div class="text-center">
+                    <div
+                        class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                        <i class="ph-fill ph-code text-3xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-600">WPE 封包工具</h3>
+                    <p class="text-sm text-slate-400 mt-2">高级功能开发中...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Import Components -->
+    <script src="components/dashboard/cp-sidebar.js"></script>
+    <script src="components/dashboard/cp-role-info.js"></script>
+    <script src="components/dashboard/cp-notices.js"></script>
+    <script src="components/dashboard/cp-daily.js"></script>
+    <script src="components/dashboard/cp-farming.js"></script>
+    <script src="components/dashboard/cp-story.js"></script>
+    <script src="components/dashboard/cp-weekly.js"></script>
+    <script src="components/dashboard/cp-settings.js"></script>
+
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        // Loading Animation
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const overlay = document.getElementById('loading-overlay');
+                if (overlay) {
+                    overlay.classList.add('opacity-0', 'pointer-events-none');
+                    setTimeout(() => overlay.remove(), 500);
+                }
+            }, 800);
+        });
+
+        // Window Controls
+        document.getElementById('btn-minimize').addEventListener('click', () => {
+            ipcRenderer.send('cp-minimize');
+        });
+
+        document.getElementById('btn-close').addEventListener('click', () => {
+            ipcRenderer.send('cp-close');
+        });
+
+        const sidebar = document.getElementById('sidebar');
+        const contentArea = document.getElementById('content-area');
+        const headerTitle = document.getElementById('header-text'); // Fixed ID
+        const headerIcon = document.getElementById('header-icon');
+
+        // Views Configuration
+        const views = {
+            'role': { component: 'cp-role-info', title: '角色信息', icon: 'ph-user-circle' },
+            'notices': { component: 'cp-notices', title: '更新公告', icon: 'ph-newspaper' },
+            'daily': { component: 'cp-daily', title: '一键日常', icon: 'ph-check-circle' },
+            'farming': { component: 'cp-farming', title: '自动刷关', icon: 'ph-sword' },
+            'story': { component: 'cp-story', title: '剧情地图', icon: 'ph-map-trifold' },
+            'weekly': { component: 'cp-weekly', title: '每周活动', icon: 'ph-gift' },
+            'settings': { component: 'cp-settings', title: '辅助设置', icon: 'ph-sliders' },
+
+            'wpe': { component: 'div', title: 'WPE封包', icon: 'ph-code', html: '<div class="p-10 text-center text-slate-400">WPE功能开发中...</div>' }
+        };
+
+        // Handle Tab Changes
+        document.addEventListener('tab-change', (e) => {
+            const tab = e.detail.tab;
+            console.log('Tab change requested:', tab);
+            const viewConfig = views[tab];
+
+            if (viewConfig) {
+                console.log('View config found:', viewConfig);
+                // Update Header
+                headerTitle.textContent = viewConfig.title;
+                headerIcon.className = `ph-fill ${viewConfig.icon} text-sky-500 mr-2 text-lg`;
+
+                // Hide all views
+                const allViews = ['view-role', 'view-notices', 'view-daily', 'view-farming', 'view-story', 'view-weekly', 'view-settings', 'view-wpe'];
+                allViews.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.classList.add('hidden');
+                    } else {
+                        console.warn('Element not found for hiding:', id);
+                    }
+                });
+
+                // Show target view
+                const targetId = `view-${tab}`;
+                const targetEl = document.getElementById(targetId);
+                console.log('Target ID:', targetId, 'Target Element:', targetEl);
+                if (targetEl) {
+                    targetEl.classList.remove('hidden');
+                    console.log('Element classes after remove hidden:', targetEl.className);
+                } else {
+                    console.error('Target element not found:', targetId);
+                }
+            } else {
+                console.error('No view config for tab:', tab);
+            }
+        });
+    </script>
+</body>
+
+</html>

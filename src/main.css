@@ -1,0 +1,22 @@
+:root {
+    --title-bar-height: 32px;
+    --bg-color: #f0f0f0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: "Inter", "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: transparent;
+    /* Allow transparency for title bar */
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+app-title-bar {
+    height: var(--title-bar-height);
+    flex-shrink: 0;
+    z-index: 1000;
+}
